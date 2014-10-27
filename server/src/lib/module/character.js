@@ -137,6 +137,66 @@ var CharacterModule = function() {
         });
     };
     
+    self.addInventory = function(item, callback) {
+        // Add an item to my inventory
+        var id = (item.model) ? (item.model.id || item.model._id) : (item.id || item._id);
+        
+        callback = ('function' === typeof callback) ? callback : function() {};
+        
+        if(! id) callback();
+        
+        if('undefined' === typeof self.model || 'undefined' === typeof self.model._id) callback();
+        
+        self.model.inventory.push(id);
+        self.model.save(function(err) {
+            if(err) throw err;
+            
+            GameObjectModel.findById(args.id, function(err, doc) {
+                if(err) throw err;
+                
+                if(! doc) {
+                    callback();
+                    return;
+                }
+                
+                doc.container = self.model._id;
+                doc.save();
+                
+                callback();
+            });
+        });
+    };
+    
+    self.removeInventory = function(item, callback) {
+        // Remove an item from my inventory
+        var id = (item.model) ? (item.model.id || item.model._id) : (item.id || item._id);
+        
+        callback = ('function' === typeof callback) ? callback : function() {};
+        
+        if(! id) callback();
+        
+        if('undefined' === typeof self.model || 'undefined' === typeof self.model._id) callback();
+        
+        self.model.inventory.pull(id);
+        self.model.save(function(err) {
+            if(err) throw err;
+            
+            GameObjectModel.findById(args.id, function(err, doc) {
+                if(err) throw err;
+                
+                if(! doc) {
+                    callback();
+                    return;
+                }
+                
+                doc.container = null;
+                doc.save();
+                
+                callback();
+            });
+        });
+    };
+    
     return self;
 };
 
