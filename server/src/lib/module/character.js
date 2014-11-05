@@ -1,9 +1,10 @@
 // Character logic
 
-var Module         = require('../module'),
-    CharacterModel = require('../../../db/models/character'),
-    PlaceModule    = require('./place'),
-    _              = require('underscore');
+var Module          = require('../module'),
+    CharacterModel  = require('../../../db/models/character'),
+    GameObjectModel = require('../../../db/models/gameobject'),
+    PlaceModule     = require('./place'),
+    _               = require('underscore');
 
 var CharacterModule = function() {
     'use strict';
@@ -151,7 +152,7 @@ var CharacterModule = function() {
         self.model.save(function(err) {
             if(err) throw err;
             
-            GameObjectModel.findById(args.id, function(err, doc) {
+            GameObjectModel.findById(id, function(err, doc) {
                 if(err) throw err;
                 
                 if(! doc) {
@@ -159,7 +160,7 @@ var CharacterModule = function() {
                     return;
                 }
                 
-                doc.container = self.model._id;
+                doc.character = self.model._id;
                 doc.save();
                 
                 callback();
@@ -181,7 +182,7 @@ var CharacterModule = function() {
         self.model.save(function(err) {
             if(err) throw err;
             
-            GameObjectModel.findById(args.id, function(err, doc) {
+            GameObjectModel.findById(id, function(err, doc) {
                 if(err) throw err;
                 
                 if(! doc) {
@@ -189,7 +190,7 @@ var CharacterModule = function() {
                     return;
                 }
                 
-                doc.container = null;
+                doc.character = null;
                 doc.save();
                 
                 callback();

@@ -1,11 +1,12 @@
 // Dispenser Game Object template object
 
-var GameObject = require('../gameobject');
+var Prop = require('../prop'),
+    _    = require('underscore');
 
-var DispenserGameObject = function(options) {
+var DispenserProp = function(options) {
     'use strict';
 
-    var self = new GameObject();
+    var self = new Prop();
 
     initialize();
 
@@ -24,4 +25,4 @@ var DispenserGameObject = function(options) {
     return self;
 };
 
-module.exports = DispenserGameObject;
+module.exports = DispenserProp;

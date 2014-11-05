@@ -1,11 +1,12 @@
 // Place logic
 
-var Module     = require('../module'),
-    PlaceModel = require('../../../db/models/place'),
-    GateModel  = require('../../../db/models/gate'),
-    PlotModule = require('./plot'),
-    GateModule = require('./gate'),
-    _          = require('underscore');
+var Module          = require('../module'),
+    PlaceModel      = require('../../../db/models/place'),
+    GateModel       = require('../../../db/models/gate'),
+    GameObjectModel = require('../../../db/models/gameobject'),
+    PlotModule      = require('./plot'),
+    GateModule      = require('./gate'),
+    _               = require('underscore');
 
 var PlaceModule = function() {
     'use strict';
@@ -227,7 +228,7 @@ var PlaceModule = function() {
         self.model.save(function(err) {
             if(err) throw err;
             
-            GameObjectModel.findById(args.id, function(err, doc) {
+            GameObjectModel.findById(id, function(err, doc) {
                 if(err) throw err;
                 
                 if(! doc) {
@@ -235,7 +236,7 @@ var PlaceModule = function() {
                     return;
                 }
                 
-                doc.container = self.model._id;
+                doc.place = self.model._id;
                 doc.save();
                 
                 callback();
@@ -257,7 +258,7 @@ var PlaceModule = function() {
         self.model.save(function(err) {
             if(err) throw err;
             
-            GameObjectModel.findById(args.id, function(err, doc) {
+            GameObjectModel.findById(id, function(err, doc) {
                 if(err) throw err;
                 
                 if(! doc) {
@@ -265,7 +266,7 @@ var PlaceModule = function() {
                     return;
                 }
                 
-                doc.container = null;
+                doc.place = null;
                 doc.save();
                 
                 callback();

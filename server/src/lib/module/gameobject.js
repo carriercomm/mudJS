@@ -1,49 +1,18 @@
-// GameObject template object
+// GameObject 
 
 var Module          = require('../module'),
     Character       = require('./character'),
     GameObjectModel = require('../../../db/models/gameobject'),
     Place           = require('./place'),
-    utils           = require('./utils');
+    Prop            = require('./prop'),
+    utils           = require('./utils'),
+    _      = require('underscore');
 
 var GameObjectModule = function(options) {
     'use strict';
 
     var self = new Module();
 
-    initialize();
-
-    function initialize() {
-        self.type = 'undefined'; // Each gameobject must overwrite this to be their type. Type is a colon separated string that describes the object type from general to specific
-
-        self.name = 'undefined'; // Each gameobject must overwrite this to be their descriptive name
-
-        self.description = 'undefined'; // Each gameobject should overwrite this
-
-        _.extend(self, options);
-    }
-    
-    // basic accessors
-    self.getName = function() { return self.name; };
-
-    self.getDescription = function() { return self.description; };
-    
-    self.getType = function() { return self.type; };
-
-    // map types to game objects
-    self.typeMap = function(type) {
-        if(! type_map) {
-            type_map = {
-                //'dispenser:dirt' : require('./gameobject/dispenser/dirt') // TODO: uncomment when available
-                //'item:dirt' : require('./gameobject/item/dirt') // TODO: uncomment when available
-            };
-        }
-
-        if(type) return type_map[type];
-        return type_map;
-    };
-
-    // Model operations
     // Find
     function findMe__meta() {
         return {
@@ -72,6 +41,8 @@ var GameObjectModule = function(options) {
             
             self.model = doc;
             
+            self.prop = new (new Prop().typeMap(self.model.type))();
+            
             callback(self);
         });
     };
@@ -79,6 +50,10 @@ var GameObjectModule = function(options) {
     // Create
     function createMe__meta() {
         return {
+            'type' : {
+                'required' : true,
+                'type'     : 'string'
+            }
         };
     }
 
@@ -90,8 +65,6 @@ var GameObjectModule = function(options) {
         
         callback = ('function' === typeof callback) ? callback : function() {};
         
-        args.type = self.type;
-
         // Create new region model
         GameObjectModel.create(_.pick(args, [
             'type'
@@ -103,6 +76,8 @@ var GameObjectModule = function(options) {
             }
             
             self.model = doc;
+            
+            self.prop = new (new Prop().typeMap(self.model.type))();
 
             callback(self);
         });
@@ -111,6 +86,10 @@ var GameObjectModule = function(options) {
     // Basic accessor methods for model data
     self.id = function() {
         return self.model._id;
+    };
+    
+    self.type = function() {
+        return self.model.type;
     };
     
     // storage handling
@@ -245,7 +224,7 @@ var GameObjectModule = function(options) {
         self.model.save(function(err) {
             if(err) throw err;
             
-            GameObjectModel.findById(args.id, function(err, doc) {
+            GameObjectModel.findById(id, function(err, doc) {
                 if(err) throw err;
                 
                 if(! doc) {
@@ -275,7 +254,7 @@ var GameObjectModule = function(options) {
         self.model.save(function(err) {
             if(err) throw err;
             
-            GameObjectModel.findById(args.id, function(err, doc) {
+            GameObjectModel.findById(id, function(err, doc) {
                 if(err) throw err;
                 
                 if(! doc) {

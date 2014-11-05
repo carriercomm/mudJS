@@ -1,6 +1,7 @@
 // Dirt Item template object
 
-var Item = require('../item');
+var Item = require('../item'),
+    _    = require('underscore');
 
 var DirtItem = function(options) {
     'use strict';

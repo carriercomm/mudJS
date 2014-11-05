@@ -31,6 +31,9 @@ var VillageBiome = function() {
                     'direction' : 'coplanar',
                     'one_way'   : false
                 }
+            ],
+            props : [
+                { 'type' : 'dispenser:dirt', 'quantity' : 1 }
             ]
         });
         
@@ -47,6 +50,9 @@ var VillageBiome = function() {
                     'direction' : 'coplanar',
                     'one_way'   : false
                 }
+            ],
+            props : [
+                { 'type' : 'dispenser:dirt', 'quantity' : 1 }
             ]
         });
     }

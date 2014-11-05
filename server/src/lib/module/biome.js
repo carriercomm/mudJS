@@ -1,9 +1,10 @@
-// Biome logic
+// Biome logic - A biome is the virtual template from which to create actual regions
 
-var Module     = require('../module'),
-    _          = require('underscore'),
-    PlotModule = require('./plot'),
-    GateModule = require('./gate');
+var Module = require('../module'),
+    _      = require('underscore'),
+    Plot   = require('./plot'),
+    Prop   = require('./prop'),
+    Gate   = require('./gate');
 
 var BiomeModule = function() {
     'use strict';
@@ -27,7 +28,10 @@ var BiomeModule = function() {
         };
 
         // Plot Map - used to create plot objects when generate is called
-        self.plot_map = new PlotModule().typeMap();
+        self.plot_map = new Plot().typeMap();
+        
+        // Prop Map - used to create prop objects when generate is called
+        self.prop_map = new Prop().typeMap();
     }
 
     // create a map of plots that can then be added as a region with places
@@ -54,7 +58,20 @@ var BiomeModule = function() {
                 // add plot
                 var opt = _.pick(p,placeOptions());
                 opt.tempId = p.tempId = region.plots.length; // Assign a temp id based on it's index in region.plots so we can track generated gates
-                region.plots.push( new self.plot_map[p.type](opt) );
+                
+                // Get the plot object
+                var a_plot = new self.plot_map[p.type](opt);
+                
+                // Add props to the plot object
+                for(var pri = 0; pri < p.props.length; pri++) {
+                    var item = p.props[pri];
+                    var a_prop = new self.prop_map[item.type]();
+                    a_plot.addProp(a_prop);
+                }
+                
+                // Add the plots to the region
+                region.plots.push( a_plot );
+                
                 added_plots.push(p);
                 p.spawned++;
                 num_plots--;
@@ -74,7 +91,20 @@ var BiomeModule = function() {
                 // add plot
                 var opt = _.pick(p,placeOptions());
                 opt.tempId = p.tempId = region.plots.length; // Assign a temp id based on it's index in region.plots so we can track generated gates
-                region.plots.push( new self.plot_map[p.type](opt) );
+                
+                // Get the plot object
+                var a_plot = new self.plot_map[p.type](opt);
+                
+                // Add props to the plot object
+                for(var pri = 0; pri < p.props.length; pri++) {
+                    var item = p.props[pri];
+                    var a_prop = new self.prop_map[item.type]();
+                    a_plot.addProp(a_prop);
+                }
+                
+                // Add the plots to the region
+                region.plots.push( a_plot );
+                
                 added_plots.push(p);
                 p.spawned++;
                 num_plots--;
@@ -88,7 +118,7 @@ var BiomeModule = function() {
         var seen     = 0; // we run through plots until we have seen them all
         var ap_count = added_plots.length; // we compare seen against this to determine when we have seen them all
         var ap       = added_plots.shift(); // first plot to process
-        var gM       = new GateModule(); // Using this for random direction generation
+        var gM       = new Gate(); // Using this for random direction generation
         
         var fFilterGatesBySourceIdFactory = function(_ap) { // find any gate relate to the current source plot id
             return function(gt) { // _.filter function
@@ -309,6 +339,15 @@ var BiomeModule = function() {
             'is_area_gate' : {
                 'desc' : 'Flag to determine if this plot can have a gate to another area',
                 'type'  : 'boolean'
+            },
+            /* props example
+             *      [
+             *          { 'type' : 'dispenser:dirt', 'quantity' : 1 }
+             *      ]
+             */
+            'props' : {
+                'desc' : 'Array json objects of the with the prop type and quatity that will make up the inventory of a place',
+                'type' : 'object'
             }
         };
     }

@@ -1,7 +1,8 @@
 // Dirt Dispenser template object
 
-var Dispenser = require('../dispenser');
-
+var Dispenser = require('../dispenser'),
+    _         = require('underscore');
+    
 var DirtDispenser = function(options) {
     'use strict';
 
@@ -15,6 +16,8 @@ var DirtDispenser = function(options) {
         self.name = 'Dirt'; // Each gameobject must overwrite this to be their descriptive name
 
         self.description = 'Plain ordinary dirt'; // Each gameobject should overwrite this
+        
+        self.templateItem = require('../item/dirt');
 
         _.extend(self, options);
     }

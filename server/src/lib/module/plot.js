@@ -1,4 +1,4 @@
-// Plot logic
+// Plot logic -  - A plot is the virtual template from which to create actual places
 
 var Module = require('../module'),
     _      = require('underscore');
@@ -19,6 +19,8 @@ var PlotModule = function(options) {
         
         self.description = []; // Each plot may or may not overwrite this (usually in their data file)
         
+        self.props = []; // array of props
+        
         _.extend(self, options);
     }
     
@@ -30,6 +32,13 @@ var PlotModule = function(options) {
         }
         
         return self.selected_description;
+    };
+    
+    // Add a prop to this plots inventory
+    self.addProp = function(prop) {
+        if('object' !== typeof prop) throw 'Prop is not valid.';
+        
+        self.props.push(prop);
     };
 
     // map types to plot objects

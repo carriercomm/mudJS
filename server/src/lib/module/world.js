@@ -3,9 +3,10 @@
 var Module       = require('../module'),
     VillageBiome = require('./biome/village'),
     Models       = require('../../../db/models'),
-    RegionModule = require('./region'),
-    PlaceModule  = require('./place'),
-    GateModule   = require('./gate'),
+    Region       = require('./region'),
+    Place        = require('./place'),
+    Gate         = require('./gate'),
+    GameObject   = require('./gameobject'),
     _            = require('underscore');
 
 var WorldModule = function() {
@@ -24,7 +25,7 @@ var WorldModule = function() {
                 });
             }
             else {
-                new PlaceModule().findMe({ id: doc._id }, function(place) {
+                new Place().findMe({ id: doc._id }, function(place) {
                     callback(place);
                 });
             }
@@ -39,12 +40,28 @@ var WorldModule = function() {
 
         var regionData = villageBiome.generate();
         
-        new RegionModule().createMe(_.pick(regionData, [
+        new Region().createMe(_.pick(regionData, [
             'type'
         ]), function(region) {
             
             // place temp id to real obj mapping (for gates)
             var place_tempIdTOrealObj = {};
+            
+            // recursion to add all gameobjects to a place before continuing
+            function addInventory(plot, place, cb) {
+                var go = plot.props.shift();
+                
+                if(! go) {
+                    cb();
+                    return;
+                }
+                
+                new GameObject().createMe(go, function(gameobject) {
+                    place.addInventory(gameobject, function() {
+                        addInventory(plot, place, cb);
+                    });
+                });
+            }
             
             // recursion to wait until all places are created before processing gates
             function createPlaces(cb) {
@@ -55,10 +72,12 @@ var WorldModule = function() {
                     return;
                 }
                 
-                new PlaceModule().createMe(p, function(placeObj) {
-                    place_tempIdTOrealObj[p.tempId] = placeObj; // setup temp id to real obj mapping
-                    region.addPlace(placeObj);
-                    createPlaces(cb);
+                new Place().createMe(p, function(placeObj) {
+                    addInventory(p, placeObj, function() {
+                        place_tempIdTOrealObj[p.tempId] = placeObj; // setup temp id to real obj mapping
+                        region.addPlace(placeObj);
+                        createPlaces(cb);
+                    });
                 });
             }
             
@@ -76,7 +95,7 @@ var WorldModule = function() {
                 gate_def.source      = (place_tempIdTOrealObj[g.source]).id();
                 gate_def.destination = (place_tempIdTOrealObj[g.destination]).id();
                 
-                new GateModule().createMe(gate_def, function(gateObj) {
+                new Gate().createMe(gate_def, function(gateObj) {
                     (place_tempIdTOrealObj[g.source]).addGate(gateObj);
                     createGates(cb);
                 });

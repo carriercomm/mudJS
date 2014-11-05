@@ -1,11 +1,12 @@
-// Generic Item Game Object template object
+// Generic Item Prop template object
 
-var GameObject = require('../gameobject');
+var Prop = require('../prop'),
+    _    = require('underscore');
 
-var ItemGameObject = function(options) {
+var ItemProp = function(options) {
     'use strict';
 
-    var self = new Module();
+    var self = new Prop();
 
     initialize();
 
@@ -22,4 +23,4 @@ var ItemGameObject = function(options) {
     return self;
 };
 
-module.exports = ItemGameObject;
+module.exports = ItemProp;
