@@ -1,4 +1,4 @@
-// GameObject 
+// GameObject
 
 var Module          = require('../module'),
     Character       = require('./character'),
@@ -25,24 +25,24 @@ var GameObjectModule = function(options) {
     self.findMe = function(args, callback) {
         var check = self.validate(findMe__meta(), args);
         if(! check.is_valid) throw check.errors();
-        
+
         callback = ('function' === typeof callback) ? callback : function() {};
-        
+
         GameObjectModel.findById(args.id, function(err, doc) {
             if(err) {
                 callback(null);
                 return;
             }
-            
+
             if(! doc) {
                 callback(null);
                 return;
             }
-            
+
             self.model = doc;
-            
+
             self.prop = new (new Prop().typeMap(self.model.type))();
-            
+
             callback(self);
         });
     };
@@ -62,9 +62,9 @@ var GameObjectModule = function(options) {
 
         var check = self.validate(createMe__meta(), args);
         if(! check.is_valid) throw check.errors();
-        
+
         callback = ('function' === typeof callback) ? callback : function() {};
-        
+
         // Create new region model
         GameObjectModel.create(_.pick(args, [
             'type'
@@ -74,24 +74,24 @@ var GameObjectModule = function(options) {
                 callback(null);
                 return;
             }
-            
+
             self.model = doc;
-            
+
             self.prop = new (new Prop().typeMap(self.model.type))();
 
             callback(self);
         });
     };
-    
+
     // Basic accessor methods for model data
     self.id = function() {
         return self.model._id;
     };
-    
+
     self.type = function() {
         return self.model.type;
     };
-    
+
     // storage handling
     function addTo__meta() {
         return {
@@ -109,17 +109,17 @@ var GameObjectModule = function(options) {
             }
         };
     }
-    
+
     self.addTo = function(args, callback) {
         var check = self.validate(removeFromCurrentContainer__meta(), args);
         if(! check.is_valid) throw check.errors();
-        
+
         callback = ('function' === typeof callback) ? callback : function() {};
-        
+
         if('undefined' === typeof self.model || 'undefined' === typeof self.model._id) callback(); // don't do anything if we are not in the db
-        
+
         var f = function() { callback(); }; // Start out function chain with just the callback
-        
+
         if(args.container) {
             callback = f;
             f = function() {
@@ -128,7 +128,7 @@ var GameObjectModule = function(options) {
                 });
             };
         }
-        
+
         if(args.place) {
             callback = f;
             f = function() {
@@ -137,7 +137,7 @@ var GameObjectModule = function(options) {
                 });
             };
         }
-        
+
         if(args.character) {
             callback = f;
             f = function() {
@@ -146,12 +146,12 @@ var GameObjectModule = function(options) {
                 });
             };
         }
-        
+
         // run the function chain
         f();
-        
+
     };
-    
+
     function removeFrom__meta() {
         return {
             'place' : {
@@ -168,17 +168,17 @@ var GameObjectModule = function(options) {
             }
         };
     }
-    
+
     self.removeFrom = function(args, callback) {
         var check = self.validate(removeFrom__meta(), args);
         if(! check.is_valid) throw check.errors();
-        
+
         callback = ('function' === typeof callback) ? callback : function() {};
-        
+
         if('undefined' === typeof self.model || 'undefined' === typeof self.model._id) callback(); // don't do anything if we are not in the db
-        
+
         var f = function() { callback(); }; // Start out function chain with just the callback
-        
+
         if(args.container) {
             callback = f;
             f = function() {
@@ -187,7 +187,7 @@ var GameObjectModule = function(options) {
                 });
             };
         }
-        
+
         if(args.place) {
             callback = f;
             f = function() {
@@ -196,7 +196,7 @@ var GameObjectModule = function(options) {
                 });
             };
         }
-        
+
         if(args.character) {
             callback = f;
             f = function() {
@@ -205,71 +205,116 @@ var GameObjectModule = function(options) {
                 });
             };
         }
-        
+
         // run the function chain
         f();
     };
-    
+
+    self.inventory = function(callback) {
+        callback = ('function' === typeof callback) ? callback : function() {};
+
+        if(self._inventory) callback(self._inventory);
+
+        // load gates
+        self._inventory = [];
+        var inventory = _.clone(self.model.inventory);
+
+        // recursive callback to load all gates
+        function getInventory(cb) {
+            var go = inventory.shift();
+
+            if(! go) {
+                cb();
+                return;
+            }
+
+            new GameObjectModule().findMe({ id: go}, function(gameobject) {
+                self._inventory.push(gameobject);
+                getInventory(cb);
+            });
+        }
+
+        getInventory(function() {
+            callback(self._inventory);
+        });
+    };
+
     self.addInventory = function(item, callback) {
         // Add an item to my inventory
         var id = (item.model) ? (item.model.id || item.model._id) : (item.id || item._id);
-        
+
         callback = ('function' === typeof callback) ? callback : function() {};
-        
+
         if(! id) callback();
-        
+
         if('undefined' === typeof self.model || 'undefined' === typeof self.model._id) callback();
-        
+
         self.model.inventory.push(id);
         self.model.save(function(err) {
             if(err) throw err;
-            
+
             GameObjectModel.findById(id, function(err, doc) {
                 if(err) throw err;
-                
+
                 if(! doc) {
                     callback();
                     return;
                 }
-                
+
                 doc.container = self.model._id;
                 doc.save();
-                
+
+                delete self._inventory; // refresh inventory array
+
                 callback();
             });
         });
     };
-    
+
     self.removeInventory = function(item, callback) {
         // Remove an item from my inventory
         var id = (item.model) ? (item.model.id || item.model._id) : (item.id || item._id);
-        
+
         callback = ('function' === typeof callback) ? callback : function() {};
-        
+
         if(! id) callback();
-        
+
         if('undefined' === typeof self.model || 'undefined' === typeof self.model._id) callback();
-        
+
         self.model.inventory.pull(id);
         self.model.save(function(err) {
             if(err) throw err;
-            
+
             GameObjectModel.findById(id, function(err, doc) {
                 if(err) throw err;
-                
+
                 if(! doc) {
                     callback();
                     return;
                 }
-                
+
                 doc.container = null;
                 doc.save();
-                
+
+                delete self._inventory; // refresh inventory array
+
                 callback();
             });
         });
     };
-    
+
+    // Summary of what this object is
+    self.summary = function(callback) {
+        callback = ('function' === typeof callback) ? callback : function() {};
+
+        var output = '';
+
+        output = output + self.prop.getName() + "{{ br() }}{{ br () }}";
+        output = output + self.prop.getDescription();
+
+        callback(output);
+    };
+
     return self;
 };
 
