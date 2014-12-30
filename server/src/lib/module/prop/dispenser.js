@@ -22,6 +22,11 @@ var DispenserProp = function(options) {
         _.extend(self, options);
     }
     
+    // Returns the object dispensed for pickup (TODO: make this later)
+    self.pickup = function() {
+        
+    }
+    
     return self;
 };
 

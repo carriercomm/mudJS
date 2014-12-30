@@ -220,11 +220,11 @@ var PlaceModule = function() {
 
         if(self._inventory) callback(self._inventory);
 
-        // load gates
+        // load inventory
         self._inventory = [];
         var inventory = _.clone(self.model.inventory);
 
-        // recursive callback to load all gates
+        // recursive callback to load inventory
         function getInventory(cb) {
             var go = inventory.shift();
 
@@ -233,7 +233,7 @@ var PlaceModule = function() {
                 return;
             }
 
-            new GameObjectModule().findMe({ id: go}, function(gameobject) {
+            new GameObjectModule().findMe({ id: go }, function(gameobject) {
                 self._inventory.push(gameobject);
                 getInventory(cb);
             });

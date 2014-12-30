@@ -6,7 +6,8 @@ var Module          = require('../module'),
     utils           = require('./utils');
 
 // Commands
-var HelpCmd        = require('./command/help'),
+var GetCmd         = require('./command/get'),
+    HelpCmd        = require('./command/help'),
     LogoutCmd      = require('./command/logout'),
     LookCmd        = require('./command/look'),
     SysTeleportCmd = require('./command/sys_teleport'),
@@ -169,6 +170,7 @@ var KernelModule = function(world) {
 
     // list of command objects
     self.commands = [
+        new GetCmd(world),
         new HelpCmd(world),
         new LogoutCmd(world),
         new LookCmd(world),
